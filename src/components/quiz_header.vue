@@ -34,7 +34,7 @@ export default {
     methods: {
         // FUNCTION TO PASS IN THE DATA FROM THE BIG ARRAY TO THEIR RESPECTIVE DATA FIELD
         assignQuizHeaderValues() {
-            this.category = this.qHeader[this.index].category;
+            this.category = this.qHeader[this.index].category.toUpperCase();
             this.ids = `${this.index + 1} / ${this.qHeader.length}`;
         },
         startCounting() {
