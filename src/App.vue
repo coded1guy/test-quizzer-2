@@ -7,7 +7,7 @@
 
 <script>
 import Header from './components/layout/Header';
-import MainCnt from './components/Main_cnt';
+import MainCnt from './components/layout/Main_cnt';
 
 export default {
   name: 'App',
