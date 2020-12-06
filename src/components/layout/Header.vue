@@ -17,7 +17,8 @@ export default {
     text-align: center;
     background: rgba(0,0,0,0.8);
     color: beige;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 500;
     font-size: 17px;
 }
 h1 {

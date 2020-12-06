@@ -1,41 +1,45 @@
 <template>
     <main id="main">
-        <!--HEADER HTML-->
+		<!--HEADER HTML-->
         <header>
             <span class="category">
-                category: {{ category }}
+                <b>category:</b> {{ category }}
             </span>
             <span class="atmpt_qstn">
-                Attempted Questions: {{ ids }}
+                <b>Attempted Questions:</b> {{ ids }}
             </span>
             <span class="timer">
-                Timer: {{ counter }}
+                <b>Timer:</b> {{ counter }}
             </span>
         </header>
-        <div class="quiz_cont">
+		<div class="scoreBoard" :style="{ display: uncontStat }">
+			<span>You got {{ score }} out of {{ this.bigData.length }} questions</span>
+			<button @click="getButton('refresh')">start again</button>
+		</div>
+        <div class="quiz_cont" :style="{ display: contStat }">
             <!--PROGRESS HTML-->
-            <div class="progress">
-                <span class="moving_color"></span>
-            </div>
+            <div class="progress" ref="progress">
+				<span :style="{ width: pWidth }"></span>
+			</div>
             <!--QUESTIONS HTML-->
             <div class="q_screen">
                 {{ qPane }}
             </div>
             <!--OPTIONS HTML-->
             <div class="op_screen">
-                <div class="optn" :style="{ background: op1Bg }" @click="validate(optOne)" v-on:click="progress">
+                <div class="optn" :style="{ background: op1Bg }" @click="validate(optOne, 'A')" v-on:click="progress">
                     <span>A.</span>
                     <div>
                         <span id="op1_check">{{ optOne }}</span>
                     </div>
                 </div>
-                <div class="optn" :style="{ background: op2Bg }" @click="validate(optTwo)">
+                <div class="optn" :style="{ background: op2Bg }" @click="validate(optTwo, 'B')">
                     <span>B.</span>
                     <div>
                         <span id="op2_check">{{ optTwo }}</span>
                     </div>
                 </div>
-                <div class="optn" :style="{ background: op2Bg }" @click="validate(optThree)">
+                <div class="optn" :style="{ background: op3Bg }" @click="validate(optThree, 'C')">
                     <span>C.</span>
                     <div>
                         <span id="op3_check">{{ optThree }}</span>
@@ -43,12 +47,11 @@
                 </div>
             </div>
             <!--BUTTONS HTML-->
-            <div class="btn_cnt" :style="{ justifyContent: btnCntJus }" >
-                <button :style ="{ display: prevDis }" style="display: none;" @click="getButton('previous')">previous</button>
+            <div class="btn_cnt">
+                <button :style ="{ display: prevDis }" @click="getButton('previous')">previous</button>
                 <button :style ="{ display: nextDis }" @click="getButton('next')">next</button>
                 <button :style ="{ display: skipDis }" @click="getButton('skip')">skip</button>
                 <button :style ="{ display: finishDis }" @click="getButton('finish')">finish</button>
-                <button :style ="{ display: refreshDis }" @click="getButton('refresh')">start again</button>
             </div>
         </div>
     </main>
@@ -60,7 +63,9 @@ export default {
     props: ["bigData"],
     data() {
         return {
-            mainEl: document.querySelector('#main'),
+			uncontStat: "none",
+            contStat: "flex",
+            score: 0,
             //index: 0,
             answer: [], 
             cAns: [], 
@@ -83,17 +88,15 @@ export default {
             optOne: "omo",
             optTwo: "emmo",
             optThree: "hmm",
-            optArr: [ this.$refs.option1, this.$refs.option2, this.$refs.option3 ],
             // STYLES DATA
-            prevDis: "none",
+            prevDis: "block",
             nextDis: "block",
             skipDis: "block",
-            finishDis: "none",
-            refreshDis: "none",
-            btnCntJus: "space-between", 
+            finishDis: "block",
             op1Bg: "rgb(163, 163, 68)",
             op2Bg: "rgb(163, 163, 68)",
-            op3Bg: "rgb(163, 163, 68)"
+			op3Bg: "rgb(163, 163, 68)",
+			pWidth: ''
         }
     },
     methods: {  
@@ -106,10 +109,9 @@ export default {
             // OPTION VALUES
             this.optOne = this.bigData[this.i].option1;
             this.optTwo = this.bigData[this.i].option2;
-            this.optThree = this.bigData[this.i].option3;
+			this.optThree = this.bigData[this.i].option3;
 
-            this.assignOptionColors();
-            this.updateButton();
+			this.progress();
         },
         startCounting() {
             this.counter = 10;
@@ -119,10 +121,8 @@ export default {
                 this.counter = this.currentCount;
                 if(this.i < this.bigData.length && this.currentCount === 0) {
                     this.getButton('skip');
-                    console.log('skipped');
                 } else if(this.i === this.bigData.length && this.currentCount === 0) {
                     this.getButton('finish');
-                    console.log('finished');
                 }
             }, 1000);
         },
@@ -132,24 +132,51 @@ export default {
             this.currentCount = 10;
         },
         // OPTIONS SCRIPT
-        validate(option) {
-            console.log(option);
-        },
-        assignOptionColors() {
-            this.op1Bg = "rgb(163, 163, 68)";
-            this.opt2Bg = "rgb(163, 163, 68)";
-            this.op3Bg = "rgb(163, 163, 68)";
-        },
-        chosen(name) {
-            console.log(name);
-        },
-        progress() {},
-
+        validate(option, opChoice) {
+			let correctAnswer = this.bigData[this.i].answer;
+			console.log();
+			if(option === correctAnswer) {
+				this.score++;
+				if(opChoice === 'A') {
+					this.op1Bg = "green";
+				} else if(opChoice === 'B') {
+					this.op2Bg = "green";
+				} else if(opChoice === 'C') {
+					this.op3Bg = "green";
+				}
+				setTimeout(() => {
+					this.op1Bg = "rgb(163, 163, 68)";
+					this.op2Bg = "rgb(163, 163, 68)";
+					this.op3Bg = "rgb(163, 163, 68)";
+					this.getButton("next");
+				}, 500);
+			} else {
+				if(opChoice === 'A') {
+					this.op1Bg = "red";
+				} else if(opChoice === 'B') {
+					this.op2Bg = "red";
+				} else if(opChoice === 'C') {
+					this.op3Bg = "red";
+				}
+				setTimeout(() => {
+					this.op1Bg = "rgb(163, 163, 68)";
+					this.op2Bg = "rgb(163, 163, 68)";
+					this.op3Bg = "rgb(163, 163, 68)";
+					this.getButton("next");
+				}, 500);
+			}
+		},
+        progress() {
+			let pCont = this.$refs.progress;
+			let lone = this.bigData.length;
+			let d = ((this.i + 1) / lone);
+			let a = pCont.offsetWidth;
+			let b = a * d;
+			this.pWidth = `${b}px`;
+		},
         // BUTTONS SCRIPT
         updateButton() {
-            console.log('start update button method');
             if(this.i === 0) {
-                console.log('i = 0');
                 this.prevDis = "none";
                 this.nextDis = "block";
                 this.skipDis = "block";
@@ -157,55 +184,49 @@ export default {
                 this.refreshDis = "none";
             }
             if (this.i < this.bigData.length && this.i > 0) {
-                console.log('i is less than index and greater than 0')
                 this.prevDis = "block";
                 this.nextDis = "block";
                 this.skipDis = "block";
                 this.finishDis = "none";
                 this.refreshDis = "none";
             }
-            if (this.i === this.bigData.length) {
-                console.log('i = index');
+            if (this.i === (this.bigData.length) - 1) {
                 this.prevDis = "block";
                 this.nextDis = "none";
                 this.skipDis = "none";
                 this.finishDis = "block";
                 this.refreshDis = "none";
             }
+            if(this.i >= this.bigData.length) { 
+				this.i = this.bigData.length;
+			}
         },
         change() {
             if(this.i < this.bigData.length) {
                 this.assignValues();
                 this.updateButton();
                 this.stopCounting();
-                this.startCounting();
+				this.startCounting();
+
             } else {
-                this.stopCounting();
+				this.stopCounting();
+
                 this.getButton('finish');
             }
         },
         getButton(button) {
-            console.log(button);
             if(button === "previous") {
                 this.i--;
-                console.log(this.i);
                 this.change();
             } else if(button === "next") {
                 this.i++;
-                console.log(this.i);
                 this.change();
             } else if(button === "skip") {
                 this.i++;
-                console.log(this.i);
                 this.change();
             } else if(button === "finish") {
-                this.mainEl.innerText = `<span class="scoresheet">you got ${this.correctAns} out of ${this.bigData.length} questions</span>`;
-                this.btnCntJus = "center";
-                this.prevDis = "none";
-                this.nextDis = "none";
-                this.skipDis = "none";
-                this.finishDis = "none";
-                this.refreshDis = "block";
+				this.uncontStat = "flex";
+				this.contStat = "none";
                 this.stopCounting();
             } else if(button === "refresh") {
                 window.location.reload();
@@ -214,18 +235,14 @@ export default {
     },
     created() {
         //this.assignOptionsValues()
-        console.log('created app');
     },
     mounted() {
-        console.log('mounted app');
         this.assignValues();
-        this.startCounting();
-        //this.updateButton(); 
-        //this.assignOptionColors();
-        console.log(this.i);
+        this.startCounting()
+        this.updateButton();
+        //this.updateButton();
     },
     updated() {
-        console.log("updateded index");
         //this.refreshIndex();
     }
 }
@@ -244,24 +261,62 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 500;
+}
+.scoreBoard {
+	width: 100%; 
+	height: 300px;
+	background: rgba(225,225,225, .3);
+	flex-direction: column; 
+	align-items: center; 
+	justify-content: center;
+	font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 500;
+}
+.scoreBoard span {
+	font-size: 20px;
+	font-weight: 600;
+}
+.scoreBoard button {
+	width: 130px;
+    padding: 6px 0;
+    margin: 20px 0 0 0;
+    font-size: 17px;
+    color: rgb(245, 245, 220);
+    background: rgba(0,0,0,0.8);
+    border-radius: 45px;
+    cursor: pointer;
+    transition: .5s ease-in-out;
+}
+.scoreBoard button:hover {
+    background: rgb(133, 0, 0);
 }
 .quiz_cont {
     width: 100%;
     margin: 0;
-    display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+	font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 500;
 }
 /* PROGRESS BAR STYLING */
 .progress {
     width: 100%;
     height: 15px;
-    background: blue;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: no-wrap;
+	justify-content: flex-start;
+    background: rgb(245, 245, 220);
+	padding: 0;
 }
-.moving_color {
-    background: red;
+.progress span {
+    background: rgb(228, 228, 100);
+	margin: 0;
+	padding: 0;
+	height: 15px;
 }
 /* QUESTIONS STYLING */
 .q_screen {
@@ -274,7 +329,8 @@ header {
     justify-content: center;
     align-items: center;
     font-size: 19px;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
+	font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 500;
 }
 /* OPTIONS STYLING */
 .op_screen {
@@ -283,7 +339,6 @@ header {
     flex-direction: column;
     padding: 3% 0;
     font-size: 17px;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 .optn span {
     margin-right: 10px;
@@ -298,7 +353,7 @@ header {
     padding: 8px 26px;
     font-size: 17px;
     cursor: pointer;
-    transition: .5s ease-in-out;
+    transition: .3s ease-in-out;
 }
 .optn:hover {
     background: rgb(116, 116, 43);
@@ -311,14 +366,17 @@ header {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
+	justify-content: space-between;
     align-items: center;
 }
 button, button:hover {
     border: none;
     outline: none;
+	font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 500;
 }
 .btn_cnt button {
-    width: 100px;
+    width: 110px;
     padding: 6px 0;
     margin: 0;
     font-size: 17px;
